@@ -1,0 +1,40 @@
+services:
+  bitplay:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bitplay
+    ports:
+      - "3347:3347"
+    volumes:
+      # Mount configuration directory for persistence
+      - ./config:/app/config
+      # Mount torrent data directory for persistence
+      - ./torrent-data:/app/torrent-data
+      # Optional: Mount downloads directory if you want to store completed downloads
+      - ./downloads:/app/downloads
+    environment:
+      # You can override these environment variables if needed
+      - TZ=UTC
+    restart: unless-stopped
+    # Add healthcheck to ensure the service is running properly
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3347/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Resource limits to prevent the container from consuming too many resources
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+
+# Optional: Add a network for better isolation
+networks:
+  default:
+    name: bitplay-network 
